@@ -21,9 +21,10 @@ class MyAppState extends State<MyApp> {
 
   late RtmClient rtmClient;
 
-  var userId = 'JamieLiu';
-  var appId = 'Your own appid with RTM service';
-  var channelName = 'lsq123';
+  var userId = 'JamieLiu'; //No need to change
+  var appId =
+      'Your own appid with RTM service'; //-------Need DIY ----------------
+  var channelName = 'lsq123'; //No need to change
 
   final _infoStrings = <String>[];
 
@@ -51,8 +52,8 @@ class MyAppState extends State<MyApp> {
             padding: const EdgeInsets.all(10),
             child: Column(
               children: [
-                _buildLogin(),
-                _buildListenChannel(),
+                _buildInitAndLogin(),
+                _buildSubscribeChannel(),
                 _buildSendChannelMessage(),
                 _buildInfoList(),
               ],
@@ -67,9 +68,7 @@ class MyAppState extends State<MyApp> {
     );
   }
 
-  void _createClient() async {}
-
-  Widget _buildLogin() {
+  Widget _buildInitAndLogin() {
     return Row(children: <Widget>[
       _isLogin
           ? Expanded(
@@ -79,15 +78,21 @@ class MyAppState extends State<MyApp> {
           : Flexible(
               child: TextField(
                   controller: _userNameController,
-                  decoration: const InputDecoration(hintText: 'uid'))),
+                  decoration: const InputDecoration(
+                      hintText: 'Input uid to login ~',
+                      hintStyle: TextStyle(color: Colors.grey))),
+            ),
       IconButton(
-        icon: Icon(_isLogin ? Icons.logout_outlined : Icons.login_sharp),
+        icon: Icon(
+          _isLogin ? Icons.logout_outlined : Icons.login_sharp,
+          color: _isLogin ? Colors.red : Colors.green, // 根据_isLogin设置颜色
+        ),
         onPressed: (_isLogin ? _toggleLogout : _toggleInitandLogin),
       )
     ]);
   }
 
-  Widget _buildListenChannel() {
+  Widget _buildSubscribeChannel() {
     if (!_isLogin) {
       return Container();
     }
@@ -96,8 +101,9 @@ class MyAppState extends State<MyApp> {
           ? Expanded(
               child: TextField(
                   controller: _channelNameController,
-                  decoration:
-                      const InputDecoration(hintText: 'Input channel id')))
+                  decoration: const InputDecoration(
+                      hintText: 'Input channel id',
+                      hintStyle: TextStyle(color: Colors.grey))))
           : Expanded(
               child: Text(
               'Channel: $channelName',
@@ -121,8 +127,9 @@ class MyAppState extends State<MyApp> {
       Expanded(
           child: TextField(
               controller: _channelMessageController,
-              decoration:
-                  const InputDecoration(hintText: 'Input channel message'))),
+              decoration: const InputDecoration(
+                  hintText: 'Input channel message',
+                  hintStyle: TextStyle(color: Colors.grey)))),
       IconButton(
         onPressed: _sendChannelMessage,
         icon: const Icon(Icons.send),
@@ -152,6 +159,7 @@ class MyAppState extends State<MyApp> {
   }
 
   void _toggleInitandLogin() async {
+//------------------------------Init part---------------------------
     WidgetsFlutterBinding.ensureInitialized();
     userId = _userNameController.text;
     //create rtm instance
@@ -187,7 +195,9 @@ class MyAppState extends State<MyApp> {
           'link state changed from ${event.previousState} to ${event.currentState}');
       _log('reason: ${event.reason}, due to operation ${event.operation}');
     });
-    // Paste the following code snippet below "login rtm service" comment
+//-----------------------------------------------------------------
+
+//-----------------------------Login part---------------------------
     try {
       // login rtm service
       var (status, response) = await rtmClient.login(appId);
@@ -204,15 +214,22 @@ class MyAppState extends State<MyApp> {
       _log('Failed to login: $e');
     }
   }
+//----------------------------------------------------------------
 
   void _toggleLogout() async {
     var (status, response) = await rtmClient.logout();
-    if (status.error == true) {
+    var releaseStatus = await rtmClient.release();
+
+    if (status.error == true || releaseStatus.error == true) {
       _log(status.reason);
+      _log(
+          '${status.operation} failed due to ${status.reason}, error code: ${status.errorCode}, response: $response');
     } else {
-      _log(response.toString());
+      _log('Logout success!');
+      _log('Release success!');
       setState(() {
         _isLogin = false;
+        _isListenChannel = false;
       });
     }
   }
@@ -256,9 +273,6 @@ class MyAppState extends State<MyApp> {
   }
 
   void _sendChannelMessage() async {
-    // Paste the following code snippet below "Publish a message" comment
-// Send a message every second for 100 seconds
-
     try {
       var (status, response) = await rtmClient.publish(
         channelName,
