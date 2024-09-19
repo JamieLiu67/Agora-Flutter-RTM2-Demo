@@ -175,12 +175,10 @@ class MyAppState extends State<MyApp> {
         rtmClient = client;
         _log('Initialize success!');
       }
-      // add events listner
     } catch (e) {
       _log('Initialize falid!:$e');
     }
 
-    // Paste the following code snippet below "add event listener" comment
     rtmClient.addListener(
         // add message event handler
         message: (event) {
@@ -235,9 +233,8 @@ class MyAppState extends State<MyApp> {
   }
 
   void _togglelSubscribeChannel() async {
-    // Paste the following code snippet below "subscribe to a channel" comment
     try {
-      // subscribe to 'getting-started' channel
+      // subscribe channel
       channelName = _channelNameController.text;
       var (status, response) = await rtmClient.subscribe(channelName);
       if (status.error == true) {
