@@ -13,7 +13,7 @@ class MyApp extends StatefulWidget {
 
 class MyAppState extends State<MyApp> {
   bool _isLogin = false;
-  bool _isListenChannel = false;
+  bool _isSubscribeChannel = false;
 
   final _userNameController = TextEditingController();
   final _channelNameController = TextEditingController();
@@ -45,7 +45,7 @@ class MyAppState extends State<MyApp> {
       home: Scaffold(
           appBar: AppBar(
             title: const Text('RTM 2.x'),
-            backgroundColor: Colors.purple,
+            backgroundColor: Colors.purple[300],
             foregroundColor: Colors.white,
           ),
           body: Container(
@@ -54,12 +54,13 @@ class MyAppState extends State<MyApp> {
               children: [
                 _buildInitAndLogin(),
                 _buildSubscribeChannel(),
-                _buildSendChannelMessage(),
+                _buildPublishChannelMessage(),
                 _buildInfoList(),
               ],
             ),
           ),
           floatingActionButton: FloatingActionButton(
+            tooltip: 'Refresh',
             onPressed: () {
               _refreshLogs();
             },
@@ -69,72 +70,95 @@ class MyAppState extends State<MyApp> {
   }
 
   Widget _buildInitAndLogin() {
-    return Row(children: <Widget>[
-      _isLogin
-          ? Expanded(
-              child: Text(
-              'userId: ${_userNameController.text}',
-            ))
-          : Flexible(
-              child: TextField(
-                  controller: _userNameController,
-                  decoration: const InputDecoration(
-                      hintText: 'Input uid to login ~',
-                      hintStyle: TextStyle(color: Colors.grey))),
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(10.0),
+        child: Row(children: <Widget>[
+          _isLogin
+              ? Expanded(
+                  child: Text(
+                  'userId: ${_userNameController.text}',
+                ))
+              : Flexible(
+                  child: TextField(
+                      controller: _userNameController,
+                      decoration: const InputDecoration(
+                          hintText: 'Input uid to login ~',
+                          hintStyle: TextStyle(color: Colors.grey))),
+                ),
+          IconButton(
+            tooltip: 'Login',
+            icon: Icon(
+              _isLogin ? Icons.logout_rounded : Icons.login_rounded,
+              color: _isLogin ? Colors.red : Colors.green,
             ),
-      IconButton(
-        icon: Icon(
-          _isLogin ? Icons.logout_outlined : Icons.login_sharp,
-          color: _isLogin ? Colors.red : Colors.green, // 根据_isLogin设置颜色
-        ),
-        onPressed: (_isLogin ? _toggleLogout : _toggleInitandLogin),
-      )
-    ]);
+            onPressed:
+                (_isLogin ? _toggleLogoutAndRelease : _toggleInitandLogin),
+          )
+        ]),
+      ),
+    );
   }
 
   Widget _buildSubscribeChannel() {
     if (!_isLogin) {
       return Container();
     }
-    return Row(children: <Widget>[
-      !_isListenChannel
-          ? Expanded(
-              child: TextField(
-                  controller: _channelNameController,
-                  decoration: const InputDecoration(
-                      hintText: 'Input channel id',
-                      hintStyle: TextStyle(color: Colors.grey))))
-          : Expanded(
-              child: Text(
-              'Channel: $channelName',
-            )),
-      IconButton(
-        onPressed: _isListenChannel
-            ? _togglelUnsubscribeChannel
-            : _togglelSubscribeChannel,
-        icon: Icon(_isListenChannel
-            ? Icons.group_off_outlined
-            : Icons.group_add_outlined),
-      )
-    ]);
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(10.0),
+        child: Row(children: <Widget>[
+          !_isSubscribeChannel
+              ? Expanded(
+                  child: TextField(
+                      controller: _channelNameController,
+                      decoration: const InputDecoration(
+                          hintText: 'Input channel id',
+                          hintStyle: TextStyle(color: Colors.grey))))
+              : Expanded(
+                  child: Text(
+                  'Channel: $channelName',
+                )),
+          IconButton(
+            tooltip: 'Subscrbie',
+            onPressed: _isSubscribeChannel
+                ? _togglelUnsubscribeChannel
+                : _togglelSubscribeChannel,
+            icon: Icon(
+              _isSubscribeChannel ? Icons.remove_circle : Icons.add_alert,
+              color: _isSubscribeChannel ? Colors.red : Colors.green,
+            ),
+          )
+        ]),
+      ),
+    );
   }
 
-  Widget _buildSendChannelMessage() {
-    if (!_isLogin || !_isListenChannel) {
+  Widget _buildPublishChannelMessage() {
+    if (!_isLogin || !_isSubscribeChannel) {
       return Container();
     }
-    return Row(children: <Widget>[
-      Expanded(
-          child: TextField(
-              controller: _channelMessageController,
-              decoration: const InputDecoration(
-                  hintText: 'Input channel message',
-                  hintStyle: TextStyle(color: Colors.grey)))),
-      IconButton(
-        onPressed: _sendChannelMessage,
-        icon: const Icon(Icons.send),
-      )
-    ]);
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(10.0),
+        child: Row(children: <Widget>[
+          Expanded(
+              child: TextField(
+                  controller: _channelMessageController,
+                  decoration: const InputDecoration(
+                      hintText: 'Input channel message',
+                      hintStyle: TextStyle(color: Colors.grey)))),
+          IconButton(
+            tooltip: 'Publish',
+            onPressed: _publishChannelMessage,
+            icon: const Icon(
+              Icons.send,
+              color: Colors.blue,
+            ),
+          )
+        ]),
+      ),
+    );
   }
 
   Widget _buildInfoList() {
@@ -142,10 +166,10 @@ class MyAppState extends State<MyApp> {
       child: ListView.builder(
         itemBuilder: (context, i) {
           return Container(
-            margin: const EdgeInsets.symmetric(vertical: 5.0), // 设置上下间距
+            margin: const EdgeInsets.symmetric(vertical: 5.0),
             decoration: BoxDecoration(
-              border: Border.all(color: Colors.blue, width: 2.0), // 设置边框颜色和宽度
-              borderRadius: BorderRadius.circular(8.0), // 可选：设置圆角
+              border: Border.all(color: Colors.blue, width: 2.0),
+              borderRadius: BorderRadius.circular(8.0),
             ),
             child: ListTile(
               contentPadding: const EdgeInsets.all(5.0),
@@ -214,7 +238,7 @@ class MyAppState extends State<MyApp> {
   }
 //----------------------------------------------------------------
 
-  void _toggleLogout() async {
+  void _toggleLogoutAndRelease() async {
     var (status, response) = await rtmClient.logout();
     var releaseStatus = await rtmClient.release();
 
@@ -222,19 +246,20 @@ class MyAppState extends State<MyApp> {
       _log(status.reason);
       _log(
           '${status.operation} failed due to ${status.reason}, error code: ${status.errorCode}, response: $response');
+      _log(
+          '${releaseStatus.operation} failed due to ${releaseStatus.reason}, error code: ${releaseStatus.errorCode}');
     } else {
       _log('Logout success!');
       _log('Release success!');
       setState(() {
         _isLogin = false;
-        _isListenChannel = false;
+        _isSubscribeChannel = false;
       });
     }
   }
 
   void _togglelSubscribeChannel() async {
     try {
-      // subscribe channel
       channelName = _channelNameController.text;
       var (status, response) = await rtmClient.subscribe(channelName);
       if (status.error == true) {
@@ -244,7 +269,7 @@ class MyAppState extends State<MyApp> {
         _log('subscribe channel: $channelName success!');
         _channelNameController.clear();
         setState(() {
-          _isListenChannel = true;
+          _isSubscribeChannel = true;
         });
       }
     } catch (e) {
@@ -261,7 +286,7 @@ class MyAppState extends State<MyApp> {
       } else {
         _log('Unsubscribe channel: $channelName success!');
         setState(() {
-          _isListenChannel = false;
+          _isSubscribeChannel = false;
         });
       }
     } catch (e) {
@@ -269,7 +294,7 @@ class MyAppState extends State<MyApp> {
     }
   }
 
-  void _sendChannelMessage() async {
+  void _publishChannelMessage() async {
     try {
       var (status, response) = await rtmClient.publish(
         channelName,
