@@ -18,13 +18,15 @@ class MyAppState extends State<MyApp> {
   final _userNameController = TextEditingController();
   final _channelNameController = TextEditingController();
   final _channelMessageController = TextEditingController();
+  final _appidController = TextEditingController();
+  final _tokenController = TextEditingController();
 
   late RtmClient rtmClient;
 
-  var userId = 'JamieLiu'; //No need to change
-  var appId =
-      'Your own appid with RTM service'; //-------Need DIY ----------------
-  var channelName = 'lsq123'; //No need to change
+  var userId = ''; //No need to change
+  var appId = ''; //------- Need DIY ----------------
+  var channelName = ''; //No need to change
+  var token = ''; //No need to change
 
   final _infoStrings = <String>[];
 
@@ -44,8 +46,8 @@ class MyAppState extends State<MyApp> {
     return MaterialApp(
       home: Scaffold(
           appBar: AppBar(
-            title: const Text('RTM 2.x'),
-            backgroundColor: Colors.purple[300],
+            title: const Text('RTM 2.x - Debug'),
+            backgroundColor: Colors.amber,
             foregroundColor: Colors.white,
           ),
           body: Container(
@@ -76,15 +78,35 @@ class MyAppState extends State<MyApp> {
         child: Row(children: <Widget>[
           _isLogin
               ? Expanded(
-                  child: Text(
-                  'userId: ${_userNameController.text}',
+                  child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text('userId: $userId'),
+                    Text('appID: $appId'),
+                    Text('Token: $token'),
+                  ],
                 ))
               : Flexible(
-                  child: TextField(
-                      controller: _userNameController,
-                      decoration: const InputDecoration(
-                          hintText: 'Input uid to login ~',
-                          hintStyle: TextStyle(color: Colors.grey))),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      TextField(
+                          controller: _userNameController,
+                          decoration: const InputDecoration(
+                              hintText: 'Input uid to login ~',
+                              hintStyle: TextStyle(color: Colors.grey))),
+                      TextField(
+                          controller: _appidController,
+                          decoration: const InputDecoration(
+                              hintText: 'Input APPID to Init ~',
+                              hintStyle: TextStyle(color: Colors.grey))),
+                      TextField(
+                          controller: _tokenController,
+                          decoration: const InputDecoration(
+                              hintText: 'Input Token to login ~',
+                              hintStyle: TextStyle(color: Colors.grey))),
+                    ],
+                  ),
                 ),
           IconButton(
             tooltip: 'Login',
@@ -168,7 +190,7 @@ class MyAppState extends State<MyApp> {
           return Container(
             margin: const EdgeInsets.symmetric(vertical: 5.0),
             decoration: BoxDecoration(
-              border: Border.all(color: Colors.blue, width: 2.0),
+              border: Border.all(color: Colors.orange, width: 2.0),
               borderRadius: BorderRadius.circular(8.0),
             ),
             child: ListTile(
@@ -186,6 +208,8 @@ class MyAppState extends State<MyApp> {
 //------------------------------Init part---------------------------
     WidgetsFlutterBinding.ensureInitialized();
     userId = _userNameController.text;
+    appId = _appidController.text;
+    token = _tokenController.text;
     //create rtm instance
     try {
       // create rtm client
@@ -197,7 +221,7 @@ class MyAppState extends State<MyApp> {
             '${status.operation} failed due to ${status.reason}, error code: ${status.errorCode}');
       } else {
         rtmClient = client;
-        _log('Initialize success!');
+        _log('🎉 Initialize success! 🎉');
       }
     } catch (e) {
       _log('Initialize falid!:$e');
@@ -222,12 +246,13 @@ class MyAppState extends State<MyApp> {
 //-----------------------------Login part---------------------------
     try {
       // login rtm service
-      var (status, response) = await rtmClient.login(appId);
+      var (status, response) =
+          await rtmClient.login(token.isEmpty ? appId : token);
       if (status.error == true) {
         _log(
             '${status.operation} failed due to ${status.reason}, error code: ${status.errorCode}, response: $response');
       } else {
-        _log('login RTM success!');
+        _log('🎉 login RTM success! 🎉');
         setState(() {
           _isLogin = true;
         });
@@ -249,8 +274,8 @@ class MyAppState extends State<MyApp> {
       _log(
           '${releaseStatus.operation} failed due to ${releaseStatus.reason}, error code: ${releaseStatus.errorCode}');
     } else {
-      _log('Logout success!');
-      _log('Release success!');
+      _log('👋🏻 Logout success! 👋🏻');
+      _log('👋🏻 Release success! 👋🏻');
       setState(() {
         _isLogin = false;
         _isSubscribeChannel = false;
@@ -266,7 +291,7 @@ class MyAppState extends State<MyApp> {
         _log(
             '${status.operation} failed due to ${status.reason}, error code: ${status.errorCode}, response: $response');
       } else {
-        _log('subscribe channel: $channelName success!');
+        _log('🔔 subscribe channel: $channelName success! 🔔');
         _channelNameController.clear();
         setState(() {
           _isSubscribeChannel = true;
@@ -284,7 +309,7 @@ class MyAppState extends State<MyApp> {
         _log(
             '${status.operation} failed due to ${status.reason}, error code: ${status.errorCode}, response: $response');
       } else {
-        _log('Unsubscribe channel: $channelName success!');
+        _log('🚫 Unsubscribe channel: $channelName success! 🚫');
         setState(() {
           _isSubscribeChannel = false;
         });
@@ -307,7 +332,7 @@ class MyAppState extends State<MyApp> {
             '${status.operation} failed due to ${status.reason}, error code: ${status.errorCode}, response: $response');
       } else {
         _log(
-            '${status.operation} send success! Message: ${_channelMessageController.text}');
+            '✉️ ${status.operation} send success! Message: ${_channelMessageController.text} ✉️');
         _channelMessageController.clear();
       }
     } catch (e) {
