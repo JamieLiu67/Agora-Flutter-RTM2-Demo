@@ -1,14 +1,10 @@
 # flutter_rtm2
 
-A new RTM2 flutter project.
+A debug version for RTM2 flutter project.
 
 ## Getting Started
 
-1. Replace your own Appid with RTM service here, otherwise you can't init RTM engine.
-   
-```dart
-  var appId = 'Your own appid with RTM service'; //-------Need DIY ----------------
-```
+1. Input your own Appid userid token with RTM service in app, otherwise you can't init RTM engine.
 2. Enjoy!
 
 If you don't know what is RTM or Appid ,you can read the [official document](https://doc.shengwang.cn/doc/rtm2/flutter/landing-page)
