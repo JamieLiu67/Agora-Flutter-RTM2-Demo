@@ -7,7 +7,9 @@ A new RTM2 flutter project.
 1. Replace your own Appid with RTM service here, otherwise you can't init RTM engine.
    
 ```dart
-  var appId = 'Your own appid with RTM service'; //-------Need DIY ----------------
+  var appId = 'xxx'; //-------Need DIY ----------------
+  var token =
+      'xxx'; //-------Need DIY ---------------- Use appid if you have not enable App Certificate
 ```
 2. Enjoy!
 

@@ -22,8 +22,9 @@ class MyAppState extends State<MyApp> {
   late RtmClient rtmClient;
 
   var userId = 'JamieLiu'; //No need to change
-  var appId =
-      'Your own appid with RTM service'; //-------Need DIY ----------------
+  var appId = 'xxx'; //-------Need DIY ----------------
+  var token =
+      'xxx'; //-------Need DIY ---------------- Use appid if you have not enable App Certificate
   var channelName = 'lsq123'; //No need to change
 
   final _infoStrings = <String>[];
@@ -222,7 +223,7 @@ class MyAppState extends State<MyApp> {
 //-----------------------------Login part---------------------------
     try {
       // login rtm service
-      var (status, response) = await rtmClient.login(appId);
+      var (status, response) = await rtmClient.login(token);
       if (status.error == true) {
         _log(
             '${status.operation} failed due to ${status.reason}, error code: ${status.errorCode}, response: $response');
